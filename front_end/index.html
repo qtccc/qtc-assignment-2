@@ -23,14 +23,15 @@
         </select>
 
         <br><br>
-        <button type="button" onclick="stepThroughKMeans()">Step Through KMeans</button>
         <button type="button" onclick="generateData()">Generate New Dataset</button>
         <button type="button" onclick="runKMeans()">Run to Convergence</button>
+        <button type="button" onclick="stepThroughKMeans()">Step Through KMeans</button>
         <button type="button" onclick="resetAlgorithm()">Reset Algorithm</button>
     </form>
 
     <div id="plot"></div>
 
-    <script src="script.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
+
