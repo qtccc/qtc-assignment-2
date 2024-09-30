@@ -1,12 +1,13 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 from KMeans import KMeans  # Import your KMeans class from the previous section
 import numpy as np
-import pandas as pd
-import random
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)  # Allow CORS for interaction with front-end
+
+# Declare kmeans globally
+kmeans = None
 
 @app.route('/')
 def index():
@@ -14,7 +15,7 @@ def index():
 
 @app.route('/cluster', methods=['POST'])
 def cluster():
-    # Get the JSON request data
+    global kmeans  # Ensure kmeans is accessible
     request_data = request.get_json()
 
     # Extract the dataset and other options from the request
@@ -25,7 +26,7 @@ def cluster():
 
     # Initialize the KMeans object with the provided initialization method
     kmeans = KMeans(n_clusters=n_clusters, init_method=init_method, max_iters=max_iters)
-    
+
     # Run KMeans algorithm
     labels = kmeans.fit(data)
     
@@ -35,36 +36,30 @@ def cluster():
         'labels': labels.tolist()
     }
 
-    # Send back the clustered data
     return jsonify(response)
 
 # Route to generate a random dataset
 @app.route('/generate_data', methods=['POST'])
 def generate_data():
-    # Generate random data points between -10 and 10 (2D data for visualization)
     num_points = int(request.json['num_points'])
     data = np.random.uniform(-10, 10, (num_points, 2))
     
-    # Return the data as a list of lists (JSON format)
     return jsonify(data.tolist())
-
-
 
 # Route to step through the KMeans algorithm
 @app.route('/step_kmeans', methods=['POST'])
 def step_kmeans():
+    global kmeans  # Declare the global variable
+    
     request_data = request.get_json()
-
-    # Extract dataset and KMeans params from the request
     data = np.array(request_data['data'])
     n_clusters = int(request_data['n_clusters'])
     init_method = request_data['init_method']
 
-    # Initialize the KMeans object (or reuse if already created)
-    if 'kmeans' not in globals():
-        global kmeans
+    # Initialize or reinitialize KMeans if necessary
+    if kmeans is None or kmeans.n_clusters != n_clusters:
         kmeans = KMeans(n_clusters=n_clusters, init_method=init_method)
-    
+
     # Perform one step of KMeans
     labels, is_converged = kmeans.step(data)
 
@@ -78,4 +73,4 @@ def step_kmeans():
     return jsonify(response)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=3000)

@@ -12,12 +12,12 @@ function generateData() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ num_points: numPoints })
     })
-    .then(response => response.json())
-    .then(responseData => {
-        data = responseData;
-        visualizeData();
-    })
-    .catch(error => console.error('Error:', error));
+        .then(response => response.json())
+        .then(responseData => {
+            data = responseData;
+            visualizeData();
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 // Run KMeans to convergence
@@ -42,18 +42,18 @@ function runKMeans() {
             centroids: selectedCentroids
         })
     })
-    .then(response => response.json())
-    .then(result => {
-        centroids = result.centroids;
-        labels = result.labels;
-        visualizeClusters();
-    })
-    .catch(error => console.error('Error:', error));
+        .then(response => response.json())
+        .then(result => {
+            centroids = result.centroids;
+            labels = result.labels;
+            visualizeClusters();
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 // Step through KMeans one iteration at a time
 function stepThroughKMeans() {
-    const numClusters = document.getElementById('num_clusters').value;
+    const numClusters = parseInt(document.getElementById('num_clusters').value);  // Ensure input is converted to an integer
     const initMethod = document.getElementById('init_method').value;
 
     fetch('/step_kmeans', {
@@ -61,7 +61,7 @@ function stepThroughKMeans() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             data: data,
-            n_clusters: numClusters,
+            n_clusters: numClusters,  // Pass the user's cluster input correctly
             init_method: initMethod
         })
     })
@@ -69,7 +69,7 @@ function stepThroughKMeans() {
     .then(result => {
         centroids = result.centroids;
         labels = result.labels;
-        visualizeClusters();
+        visualizeClusters();  // Update the plot after every step
 
         if (result.converged) {
             alert('KMeans has converged.');
@@ -78,14 +78,25 @@ function stepThroughKMeans() {
     .catch(error => console.error('Error:', error));
 }
 
-// Reset the algorithm
+
+
+// Reset the algorithm without changing the dataset
 function resetAlgorithm() {
-    data = [];
+    // Clear centroids, labels, and selected centroids but keep the dataset
     centroids = [];
     labels = [];
     selectedCentroids = [];
-    Plotly.purge('plot');
+    isManualMode = false;  // Reset manual mode
+
+    // Re-visualize the dataset without centroids and labels
+    visualizeData();  // Call the function that only displays the dataset without clusters
+
+    // Optionally: Reset the form inputs (like number of clusters and init method) if needed
+    document.getElementById('num_clusters').value = 3;  // Reset to default number of clusters
+    document.getElementById('init_method').selectedIndex = 0;  // Reset to 'Random' method (or keep current)
+
 }
+
 
 // Visualize the raw data points
 function visualizeData() {
